@@ -1,5 +1,5 @@
-Function Export-Xls{
-	<#
+Function Export-Xls {
+    <#
 .SYNOPSIS
 	Saves Microsoft .NET Framework objects to a worksheet in an XLS file
 .DESCRIPTION
@@ -29,72 +29,72 @@ Function Export-Xls{
 .EXAMPLE
 	PS> Export-Xls -
 #>
-	param(
-	[parameter(ValueFromPipeline = $true,Position=1)]
-	[ValidateNotNullOrEmpty()]
-	$InputObject,
-	[parameter(Position=2)]
-	[ValidateNotNullOrEmpty()]
-	[string]$Path,
-	[string]$WorksheetName = ("Sheet " + (Get-Date).Ticks),
-	[string]$SheetPosition = "begin",
-	[switch]$NoTypeInformation = $true,
-	[switch]$AppendWorksheet = $true
-	)
+    param(
+        [parameter(ValueFromPipeline = $true, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        $InputObject,
+        [parameter(Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [string]$Path,
+        [string]$WorksheetName = ("Sheet " + (Get-Date).Ticks),
+        [string]$SheetPosition = "begin",
+        [switch]$NoTypeInformation = $true,
+        [switch]$AppendWorksheet = $true
+    )
 
-	Begin{
-		$excelApp = New-Object -ComObject "Excel.Application"
-		$originalAlerts = $excelApp.DisplayAlerts
-		$excelApp.DisplayAlerts = $false
-		$excelApp.Visible = $true
-		if(Test-Path -Path $Path -PathType "Leaf"){
-			$workBook = $excelApp.Workbooks.Open($Path)
-		}
-		else{
-			$workBook = $excelApp.Workbooks.Add()
-		}
-		$sheet = $excelApp.Worksheets.Add($workBook.Worksheets.Item(1))
-		if(!$AppendWorksheet){
-			$workBook.Sheets | where {$_ -ne $sheet} | %{$_.Delete()}
-		}
-		$sheet.Name = $WorksheetName
-		if($SheetPosition -eq "end"){
-			$nrSheets = $workBook.Sheets.Count
-			2..($nrSheets) |%{
-				$workbook.Sheets.Item($_).Move($workbook.Sheets.Item($_ - 1))
-			}
-		}
-		$tempCsvName = $env:Temp + "\Report-" + (Get-Date).Ticks + ".csv"
-		$array = @()
-	}
+    Begin {
+        $excelApp = New-Object -ComObject "Excel.Application"
+        $originalAlerts = $excelApp.DisplayAlerts
+        $excelApp.DisplayAlerts = $false
+        $excelApp.Visible = $true
+        if (Test-Path -Path $Path -PathType "Leaf") {
+            $workBook = $excelApp.Workbooks.Open($Path)
+        }
+        else {
+            $workBook = $excelApp.Workbooks.Add()
+        }
+        $sheet = $excelApp.Worksheets.Add($workBook.Worksheets.Item(1))
+        if (!$AppendWorksheet) {
+            $workBook.Sheets | Where-Object {$_ -ne $sheet} | ForEach-Object {$_.Delete()}
+        }
+        $sheet.Name = $WorksheetName
+        if ($SheetPosition -eq "end") {
+            $nrSheets = $workBook.Sheets.Count
+            2..($nrSheets) | ForEach-Object {
+                $workbook.Sheets.Item($_).Move($workbook.Sheets.Item($_ - 1))
+            }
+        }
+        $tempCsvName = $env:Temp + "\Report-" + (Get-Date).Ticks + ".csv"
+        $array = @()
+    }
 
-	Process{
-		$array += $InputObject
-	}
+    Process {
+        $array += $InputObject
+    }
 
-	End{
-		$array | Export-Csv -Path $tempCsvName -NoTypeInformation:$NoTypeInformation
-		$csvBook = $excelApp.Workbooks.Open($tempCsvname)
-		$csvSheet = $csvBook.Worksheets.Item(1)
-		$csvSheet.UsedRange.Copy() | Out-Null
-		$sheet.Paste()
-		$sheet.UsedRange.EntireColumn.AutoFit() | Out-Null
-		if($excelApp.Version -lt 14){
-			$csvbook.Application.CutCopyMode = $false
-		}
-		$csvBook.Close($false,$null,$null)
-		Remove-Item -Path $tempCsvName -Confirm:$false
-		$workbook.Sheets.Item(1).Select()
-		$workbook.SaveAs($Path)
-		$excelApp.DisplayAlerts = $originalAlerts
-		$excelApp.Quit()
-		Stop-Process -Name "Excel"
-	}
+    End {
+        $array | Export-Csv -Path $tempCsvName -NoTypeInformation:$NoTypeInformation
+        $csvBook = $excelApp.Workbooks.Open($tempCsvname)
+        $csvSheet = $csvBook.Worksheets.Item(1)
+        $csvSheet.UsedRange.Copy() | Out-Null
+        $sheet.Paste()
+        $sheet.UsedRange.EntireColumn.AutoFit() | Out-Null
+        if ($excelApp.Version -lt 14) {
+            $csvbook.Application.CutCopyMode = $false
+        }
+        $csvBook.Close($false, $null, $null)
+        Remove-Item -Path $tempCsvName -Confirm:$false
+        $workbook.Sheets.Item(1).Select()
+        $workbook.SaveAs($Path)
+        $excelApp.DisplayAlerts = $originalAlerts
+        $excelApp.Quit()
+        Stop-Process -Name "Excel"
+    }
 }
 
 
 function Start-Rdsclient {
-	<#
+    <#
 .SYNOPSIS
 	Starts Remote Desktop Client
 .DESCRIPTION
@@ -108,30 +108,30 @@ function Start-Rdsclient {
 .EXAMPLE
 	PS> start-rdsclient server
 #>
-	param(
-	[parameter(ValueFromPipeline = $true,Position=1)]
-	[ValidateNotNullOrEmpty()]
-	[string] $hostname,
-	[parameter(Position=2)]
-	[ValidateNotNullOrEmpty()]
-    [alias("console")]
-	[switch]$admin
-	)
+    param(
+        [parameter(ValueFromPipeline = $true, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string] $hostname,
+        [parameter(Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [alias("console")]
+        [switch]$admin
+    )
 
  
-	if ($admin) {
-		mstsc /v:$hostname /admin
-		} 
-	else {
-		mstsc /v:$hostname
-		}
+    if ($admin) {
+        mstsc /v:$hostname /admin
+    } 
+    else {
+        mstsc /v:$hostname
+    }
 }
 
 set-alias ts start-rdsclient
 set-alias rds start-rdsclient
 
 function get-website {
-<#
+    <#
 .SYNOPSIS
 	Launches browser to a web site.
 .DESCRIPTION
@@ -143,31 +143,32 @@ function get-website {
 .EXAMPLE
 	PS> get-website "http://www.microsoft.com"
 #>
-Param ([parameter(ValueFromPipeline = $true,Position=1)] [string] $Site = "http://www.google.com/ig?hl=en" )
+    Param ([parameter(ValueFromPipeline = $true, Position = 1)] [string] $Site = "http://www.google.com/ig?hl=en" )
 
-[diagnostics.process]::start($Site)
+    [diagnostics.process]::start($Site)
 
 }
 
 set-alias gws get-website
 
-function Clear-VIServers{  
-[CmdletBinding(SupportsShouldProcess=$true,  
-    ConfirmImpact="Medium")]  
-param (  
-)  
-BEGIN{}#begin 
-PROCESS{ 
+function Clear-VIServers {  
+    [CmdletBinding(SupportsShouldProcess = $true,  
+        ConfirmImpact = "Medium")]  
+    param (  
+    )  
+    BEGIN {}#begin 
+	PROCESS 
+	{ 
 
-if ($psCmdlet.ShouldProcess("reset", "$DefaultVIServer and $DefaultVIServers")) { 
-    $global:DefaultVIServer = $nul
-    $global:DefaultVIServers = $nul
-} 
+		if ($psCmdlet.ShouldProcess("reset", "$DefaultVIServer and $DefaultVIServers")) { 
+			Disconnect-VIServer -Server $global:DefaultVIServers -Confirm:$false
+		} 
 
-}#process 
-END{}#end 
+    } #process 
+	
+	END {}#end 
 
-<#
+    <#
 .SYNOPSIS
     Clears VIServers Variables to reset PowerCLI
 .DESCRIPTION
@@ -185,32 +186,23 @@ END{}#end
 
 Set-Alias -Name cvis -Value Clear-VIServers
 
-function get-shawphone {
-	<#
+Function Switch-DockerEngine {
+    <#
 .SYNOPSIS
-	Get phone information
+	Switch Docker Engine Between Windows and Linux Containers
 .DESCRIPTION
-	The get-shawphone gets data from the phone book.
+	Switch Docker Engine Between Windows and Linux Containers
 .NOTES
 	Author:  Mark Curole
-.PARAMETER Name
-	Name of person to search
 .EXAMPLE
-	PS> get-shawphone -name mark
+	PS> Switch-DockerEngine
 #>
-	param(
-	[parameter(ValueFromPipeline = $true,Position=1)]
-	[ValidateNotNullOrEmpty()]
-	[string] $name
-	)
+    param( )
 
-$shawphone = New-WebServiceProxy -uri "http://shawphone.shawinc.com/PhoneService.svc"
-
-$shawphone.search($name,"","","","","","","","") 
-
+	& 'C:\Program Files\Docker\Docker\DockerCli.exe' -SwitchDaemon
 }
 
-New-Alias gsp get-shawphone
+New-Alias sde Switch-DockerEngine
 
 function Test-IsAdmin {
     <#
@@ -226,14 +218,15 @@ function Test-IsAdmin {
         $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
         $principal = New-Object Security.Principal.WindowsPrincipal -ArgumentList $identity
         return $principal.IsInRole( [Security.Principal.WindowsBuiltInRole]::Administrator )
-    } catch {
+    }
+    catch {
         throw "Failed to determine if the current user has elevated privileges. The error was: '{0}'." -f $_
     }
 
 }
 
 function Convert-IISLogsToObject {
-<#
+    <#
     .Synopsis
         Converts plain text IIS logs into a ps Object
     .DESCRIPTION
@@ -251,19 +244,20 @@ function Convert-IISLogsToObject {
     [OutputType([System.Management.Automation.PSCustomObject])]
     Param(
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
-        [ValidateScript({ Test-Path -Path $_ })]
+        [ValidateScript( { Test-Path -Path $_ })]
         [string[]]
         $path
     )
 
     Process {
-        forEach($filePath in $path) {
-            $headers = (Get-Content -Path $filePath -TotalCount 4 | Select -First 1 -Skip 3) -replace '#Fields: ' -split ' '
-            $headers = $headers[0..($headers.count-2)] 
+        forEach ($filePath in $path) {
+            $headers = (Get-Content -Path $filePath -TotalCount 4 | Select-Object -First 1 -Skip 3) -replace '#Fields: ' -split ' '
+            $headers = $headers[0..($headers.count - 2)] 
             Get-Content $filePath | Select-String -Pattern '^#' -NotMatch | ConvertFrom-Csv -Delimiter ' ' -Header $headers
         }
     }
 }
+
 
 
 #set-alias putty "C:\Program Files (x86)\putty\putty.exe"
@@ -280,7 +274,7 @@ Export-ModuleMember -function Export-Xls
 Export-ModuleMember -function start-rdsclient
 Export-ModuleMember -function get-website
 Export-ModuleMember -Function Clear-VIServers
-Export-ModuleMember -function get-shawphone
+Export-ModuleMember -function Switch-DockerEngine
 Export-ModuleMember -Function Test-IsAdmin
 Export-ModuleMember -Function Convert-IISLogsToObject
 
@@ -293,4 +287,4 @@ Export-ModuleMember -alias unzip
 Export-ModuleMember -alias xn
 Export-ModuleMember -alias rh
 Export-ModuleMember -Alias cvis
-Export-ModuleMember -Alias gsp
+Export-ModuleMember -Alias sde
