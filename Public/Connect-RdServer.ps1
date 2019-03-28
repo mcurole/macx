@@ -17,17 +17,21 @@ Function Connect-RdServer {
         [parameter(ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $hostname,
-        [parameter(Position = 2)]
+        [parameter]
         [ValidateNotNullOrEmpty()]
         [alias("console")]
-        [switch]$admin
+        [switch]$admin,
+        [parameter(Position = 2)]
+        [string]$gateway
     )
 
- 
+    $cmd = "mstsc /v:$hostname"
     if ($admin) {
-        mstsc /v:$hostname /admin
-    } 
-    else {
-        mstsc /v:$hostname
+        $cmd += " /admin"
     }
+    if ($gateway -ne "") {
+        $cmd += " /g:$gateway"
+    }
+
+    Invoke-Expression $cmd
 }
