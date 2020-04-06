@@ -17,12 +17,11 @@ Function Connect-RdServer {
         [parameter(ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $hostname,
-        [parameter]
-        [ValidateNotNullOrEmpty()]
-        [alias("console")]
-        [switch]$admin,
         [parameter(Position = 2)]
-        [string]$gateway
+        [string]$gateway,
+        [parameter(Mandatory=$false)]
+        [alias("console")]
+        [switch]$admin
     )
 
     $cmd = "mstsc /v:$hostname"
